@@ -1,0 +1,65 @@
+version: '3.4'
+
+volumes: 
+  influxdb_data: {}
+  grafana_data: {}
+
+services:
+  nudnik-server:
+    container_name: nudnik-server
+    # build: .
+    image: salosh/nudnik:${NUDNIK_VERSION:-latest}
+    expose:
+      - "5410"
+    ports:
+      - "5410:5410"
+    volumes:
+      - "./nudnik/config/server.yml:/etc/nudnik/config.yml"
+    # environment: 
+      # NUDNIK_DEBUG: 8
+    command: --config-file /etc/nudnik/config.yml
+    # command: --config-file /etc/nudnik/config.yml --debug
+    depends_on: 
+      - influxdb
+
+  nudnik-client:
+    container_name: nudnik-client
+    # build: .
+    image: salosh/nudnik:${NUDNIK_VERSION:-latest}
+    volumes:
+      - "./nudnik/config/client.yml:/etc/nudnik/config.yml"
+    # environment: 
+      # NUDNIK_DEBUG: 8
+    command: --config-file /etc/nudnik/config.yml
+    # command: --config-file /etc/nudnik/config.yml --debug
+    depends_on: 
+      - nudnik-server
+  
+  influxdb:
+    container_name: influxdb
+    image: "influxdb:1.7.1-alpine"
+    expose:
+      - 8086
+    ports:
+      - 8086:8086
+    volumes:
+      - './influxdb/influxdb.conf.example:/etc/influxdb/influxdb.conf:ro'
+      - 'influxdb_data:/var/lib/influxdb/'
+    #entrypoint: [ "/bin/sh" ]
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:5.3.4
+    expose:
+      - 3000
+    ports:
+      - 3000:3000
+    volumes:
+      - './grafana/provisioning/:/etc/grafana/provisioning/'
+      - './grafana/dashboards/:/var/lib/grafana/dashboards/'
+      - 'grafana_data:/var/lib/grafana'
+    depends_on: 
+      - influxdb
+    environment: 
+      GF_INSTALL_PLUGINS: 'natel-influx-admin-panel,grafana-clock-panel,yesoreyeram-boomtable-panel'
+  

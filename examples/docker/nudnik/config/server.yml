@@ -1,0 +1,15 @@
+---
+# more info about configuration by running `nudnik --help`
+server: True
+name: "nudnik-server"
+host: "0.0.0.0"
+port: 5410
+streams: 20
+rate: 5
+interval: 3
+out_format: "name={req.name} mid={req.message_id},pdelta={pdelta} {recieved_at}"
+influxdb_format: "name={req.name} mid={req.message_id},pdelta={pdelta} {recieved_at}"
+metrics: "influxdb"
+# metrics_interval: 3
+influxdb_protocol: "http"
+influxdb_host: "influxdb:8086"
